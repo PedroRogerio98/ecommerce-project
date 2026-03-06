@@ -5,14 +5,16 @@ export class CreateProductController {
 
     async handle(req: Request, res: Response) {
 
-        const { nome, descricao, preco } = req.body;
+        const { sku, nome, descricao, preco, quantidade } = req.body;
 
         const service = new CreateProductService();
 
         const product = await service.execute({
+            sku,
             nome,
             descricao,
-            preco
+            preco,
+            quantidade
         });
 
         return res.status(201).json(product);

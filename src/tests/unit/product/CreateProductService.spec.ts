@@ -20,9 +20,11 @@ describe("CreateProductService", () => {
         const service = new CreateProductService(repository as any);
 
         const product = await service.execute({
+            sku: "123456",
             nome: "Teclado Gamer",
             descricao: "RGB",
-            preco: 500
+            preco: 500,
+            quantidade: 10
         });
 
         expect(product.nome).toBe("Teclado Gamer");
@@ -36,8 +38,42 @@ describe("CreateProductService", () => {
 
         await expect(
             service.execute({
+                sku: "123456",
                 nome: "Produto inválido",
-                preco: 0
+                preco: 0,
+                quantidade: 10
+            } as any)
+        ).rejects.toThrow();
+
+    });
+
+    it("should throw error if quantity is invalid", async () => {
+
+        const repository = new FakeProductRepository();
+        const service = new CreateProductService(repository as any);
+
+        await expect(
+            service.execute({
+                sku: "123456",
+                nome: "Produto inválido",
+                preco: 500,
+                quantidade: 0
+            } as any)
+        ).rejects.toThrow();
+
+    });
+
+    it("should throw error if sku is invalid", async () => {
+
+        const repository = new FakeProductRepository();
+        const service = new CreateProductService(repository as any);
+
+        await expect(
+            service.execute({
+                sku: "",
+                nome: "Produto inválido",
+                preco: 500,
+                quantidade: 10
             } as any)
         ).rejects.toThrow();
 
