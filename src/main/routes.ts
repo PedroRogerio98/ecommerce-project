@@ -7,9 +7,9 @@ dotenv.config();
 
 const routes = Router();
 
-const basePath = process.env.BASE_PATH || "";
+const basePath = process.env.BASE_PATH ? `/${process.env.BASE_PATH}` : "";
 
-routes.use(`/${basePath}/health`, healthRoutes);
-routes.use(`/${basePath}/products`, productRoutes);
+routes.use(`${basePath}/health`, healthRoutes);
+routes.use(`${basePath}/products`, productRoutes);
 
 export default routes;
