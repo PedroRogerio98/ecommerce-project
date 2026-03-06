@@ -42,7 +42,7 @@ jobs:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           sudo apt-get install -y postgresql-client
-          psql -h localhost -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -c "CREATE TABLE products (id SERIAL PRIMARY KEY, nome VARCHAR(255), descricao TEXT, preco NUMERIC);"
+          psql -h localhost -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -c "CREATE TABLE products (id UUID PRIMARY KEY DEFAULT gen_random_uuid(), sku VARCHAR(255), nome VARCHAR(255), descricao TEXT, preco NUMERIC, quantidade INTEGER);"
 
       - name: Run tests
         env:
