@@ -5,6 +5,7 @@ class FakeProductRepository implements IProductRepository {
 
     async create(data: any): Promise<any> {
         return {
+            id: "fake-id",
             ...data
         };
     }
