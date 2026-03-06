@@ -14,14 +14,16 @@ describe("Create Product (Integration)", () => {
         const response = await request(app)
             .post(endpoint)
             .send({
-                nome: "Monitor Gamer",
-                descricao: "165hz",
-                preco: 2000
+                sku: "123456",
+                nome: "Teste de integração",
+                descricao: "Teste de integração",
+                preco: 2000,
+                quantidade: 10
             });
 
         expect(response.status).toBe(201);
 
-        expect(response.body.nome).toBe("Monitor Gamer");
+        expect(response.body.nome).toBe("Teste de integração");
 
     });
 

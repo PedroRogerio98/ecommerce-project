@@ -10,4 +10,12 @@ export function validateCreateProduct(data: CreateProductDTO) {
         throw new Error("Preço deve ser maior que zero");
     }
 
+    if (!data.quantidade || data.quantidade <= 0) {
+        throw new Error("Quantidade deve ser maior que zero");
+    }
+
+    if (!data.sku) {
+        throw new Error("SKU é obrigatório");
+    }
+
 }

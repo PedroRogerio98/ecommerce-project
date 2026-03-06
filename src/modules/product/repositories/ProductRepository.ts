@@ -7,15 +7,17 @@ export class ProductRepository implements IProductRepository {
   async create(data: CreateProductDTO) {
 
     const query = `
-      INSERT INTO products (nome, descricao, preco)
-      VALUES ($1, $2, $3)
+      INSERT INTO products (sku, nome, descricao, preco, quantidade)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `;
 
     const values = [
+      data.sku,
       data.nome,
       data.descricao,
-      data.preco
+      data.preco,
+      data.quantidade
     ];
 
     const result = await pool.query(query, values);
