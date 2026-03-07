@@ -39,4 +39,14 @@ export class ProductRepository implements IProductRepository {
     return result.rows[0];
   }
 
+  async list() {
+    const query = `
+      SELECT * FROM products
+    `;
+
+    const result = await pool.query(query);
+
+    return result.rows;
+  }
+
 }
