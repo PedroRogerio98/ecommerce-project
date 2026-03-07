@@ -1,21 +1,25 @@
 import { IProductRepository } from "../repositories/IProductRepository";
-import { ProductRepository } from "../repositories/ProductRepository";
 import { CreateProductDTO } from "../dto/CreateProductDTO";
 import { validateCreateProduct } from "../validations/CreateProductValidation";
+import { AppError } from "../../../shared/errors/ApiError";
 
 export class CreateProductService {
 
-    private repository: IProductRepository;
-
-    constructor(repository?: IProductRepository) {
-        this.repository = repository ?? new ProductRepository();
-    }
+    constructor(
+        private repository: IProductRepository
+    ) { }
 
     async execute(data: CreateProductDTO) {
 
         validateCreateProduct(data);
 
-        return await this.repository.create(data);
+        const product = await this.repository.create(data);
+
+        if (!product) {
+            throw AppError.internalError("Erro ao criar produto");
+        }
+
+        return product;
 
     }
 
