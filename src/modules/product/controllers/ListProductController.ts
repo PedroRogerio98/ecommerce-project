@@ -12,8 +12,8 @@ export class ListProductController {
 
         const products = await this.service.execute();
 
-        if (products.length === 0) {
-            throw AppError.notFound("Nenhum produto encontrado");
+        if (!products || products.length === 0) {
+            throw new AppError("Nenhum produto encontrado", 404);
         }
 
         return res.status(200).json({ products });
