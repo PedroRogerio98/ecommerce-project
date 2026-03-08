@@ -1,6 +1,6 @@
 import { IProductRepository } from "../repositories/IProductRepository";
 import { FindProductByCodeDTO } from "../dto/FindProductByCodeDTO";
-import { validateFindProductByCode } from "../validations/FindProductByCode";
+import { validateFindProductByCode } from "../validations/FindProductByCodeValidation";
 import { AppError } from "../../../shared/errors/ApiError";
 
 export class FindProductByCodeService {

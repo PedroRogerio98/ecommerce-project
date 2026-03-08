@@ -34,7 +34,6 @@ describe("Find Product By Id (Integration)", () => {
         expect(response.status).toBe(200);
 
         expect(response.body.product).toBeDefined();
-        // Since the previous test expected .id, we'll assert on the returned object's id or sku.
         expect(response.body.product.id).toBe("123456");
         expect(response.body.product.sku).toBe("123456");
 

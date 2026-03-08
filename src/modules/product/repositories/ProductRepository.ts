@@ -1,5 +1,6 @@
 import { pool } from "../../../database/connection";
 import { CreateProductDTO } from "../dto/CreateProductDTO";
+import { DeleteProductByCodeDTO } from "../dto/DeleteProductByCodeDTO";
 import { FindProductByCodeDTO } from "../dto/FindProductByCodeDTO";
 import { IProductRepository } from "./IProductRepository";
 
@@ -47,6 +48,17 @@ export class ProductRepository implements IProductRepository {
     const result = await pool.query(query);
 
     return result.rows;
+  }
+
+  async deleteByCode(data: DeleteProductByCodeDTO) {
+    const query = `
+      DELETE FROM products
+      WHERE sku = $1
+    `;
+
+    const values = [data.sku];
+
+    await pool.query(query, values);
   }
 
 }

@@ -17,7 +17,7 @@ export class FindProductByCodeController {
         });
 
         if (!product) {
-            throw AppError.notFound("Produto não encontrado");
+            throw new AppError("Product not found", 404);
         }
 
         return res.status(200).json({ product });
