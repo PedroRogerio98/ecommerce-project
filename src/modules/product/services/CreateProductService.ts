@@ -13,6 +13,12 @@ export class CreateProductService {
 
         validateCreateProduct(data);
 
+        const productExists = await this.repository.findByCode(data);
+
+        if (productExists) {
+            throw AppError.badRequest("Produto já cadastrado");
+        }
+
         const product = await this.repository.create(data);
 
         if (!product) {

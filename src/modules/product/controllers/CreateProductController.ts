@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { CreateProductService } from "../services/CreateProductService";
-import { AppError } from "../../../shared/errors/ApiError";
 
 export class CreateProductController {
 
@@ -20,7 +19,10 @@ export class CreateProductController {
             quantidade
         });
 
-        return res.status(201).json(product);
+        return res.status(201).json({
+            message: "Produto criado com sucesso",
+            product
+        });
     }
 
 }

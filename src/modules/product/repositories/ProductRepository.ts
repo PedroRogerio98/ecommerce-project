@@ -2,6 +2,7 @@ import { pool } from "../../../database/connection";
 import { CreateProductDTO } from "../dto/CreateProductDTO";
 import { DeleteProductByCodeDTO } from "../dto/DeleteProductByCodeDTO";
 import { FindProductByCodeDTO } from "../dto/FindProductByCodeDTO";
+import { UpdateProductDTO } from "../dto/UpdateProductDTO";
 import { IProductRepository } from "./IProductRepository";
 
 export class ProductRepository implements IProductRepository {
@@ -59,6 +60,27 @@ export class ProductRepository implements IProductRepository {
     const values = [data.sku];
 
     await pool.query(query, values);
+  }
+
+  async update(data: UpdateProductDTO) {
+    const query = `
+      UPDATE products
+      SET nome = $1, descricao = $2, preco = $3, quantidade = $4, updated_at = NOW()
+      WHERE sku = $5
+      RETURNING *
+    `;
+
+    const values = [
+      data.nome,
+      data.descricao,
+      data.preco,
+      data.quantidade,
+      data.sku
+    ];
+
+    const result = await pool.query(query, values);
+
+    return result.rows[0];
   }
 
 }

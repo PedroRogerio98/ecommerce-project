@@ -19,7 +19,10 @@ export class DeleteProductByCodeController {
 
             const message = "Produto deletado com sucesso";
 
-            return res.status(200).json({ message });
+            return res.status(200).json({
+                message,
+                product: sku
+            });
         } catch (error) {
             if (error instanceof AppError) {
                 return res.status(error.statusCode).json({ error: error.message });
