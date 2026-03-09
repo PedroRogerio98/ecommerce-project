@@ -1,59 +1,60 @@
+import { Request, Response } from "express";
 import { ListProductController } from "../../../../modules/product/controllers/ListProductController";
-import { AppError } from "../../../../shared/errors/ApiError";
+import { ListProductService } from "../../../../modules/product/services/ListProductService";
 
 describe("ListProductController", () => {
+    let listProductController: ListProductController;
+    let mockListProductService: jest.Mocked<ListProductService>;
+    let mockRequest: Partial<Request>;
+    let mockResponse: Partial<Response>;
 
-    it("should return a list of products", async () => {
+    beforeEach(() => {
+        mockListProductService = {
+            execute: jest.fn()
+        } as unknown as jest.Mocked<ListProductService>;
 
-        const mockService = {
-            execute: jest.fn().mockResolvedValue([
-                {
-                    id: "1",
-                    nome: "Produto Teste",
-                    preco: 100
-                },
-                {
-                    id: "2",
-                    nome: "Produto Teste 2",
-                    preco: 200
-                }
-            ])
-        };
-        const req: any = {};
+        listProductController = new ListProductController(mockListProductService);
 
-        const res: any = {
+        mockRequest = {};
+
+        mockResponse = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
         };
-
-        const controller = new ListProductController(mockService as any);
-
-        await controller.handle(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(200);
-
-        expect(res.json).toHaveBeenCalled();
-
     });
 
-    it("should reject with 404 AppError when no products are found", async () => {
+    it("should be able to handle list all products successfully", async () => {
+        const productsList = [
+            { id: "1", sku: "SKU1", nome: "Product 1", preco: 10, quantidade: 5 },
+            { id: "2", sku: "SKU2", nome: "Product 2", preco: 20, quantidade: 10 }
+        ];
 
-        const mockService = {
-            execute: jest.fn().mockResolvedValue([])
-        };
+        mockListProductService.execute.mockResolvedValue(productsList as any);
 
-        const req: any = {};
+        await listProductController.handle(mockRequest as Request, mockResponse as Response);
 
-        const res: any = {
-            status: jest.fn().mockReturnThis(),
-            json: jest.fn()
-        };
-
-        const controller = new ListProductController(mockService as any);
-
-        await expect(controller.handle(req, res)).rejects.toBeInstanceOf(AppError);
-        await expect(controller.handle(req, res)).rejects.toMatchObject({ statusCode: 404 });
-
+        expect(mockListProductService.execute).toHaveBeenCalled();
+        expect(mockResponse.status).toHaveBeenCalledWith(200);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            message: "Produtos listados com sucesso",
+            products: productsList
+        });
     });
 
+    it("should throw AppError if service returns an empty array", async () => {
+        mockListProductService.execute.mockResolvedValue([]);
+
+        await expect(listProductController.handle(mockRequest as Request, mockResponse as Response)).rejects.toMatchObject({
+            message: "Nenhum produto encontrado",
+            statusCode: 404
+        });
+    });
+
+    it("should bubble up errors from the service", async () => {
+        const errorMessage = new Error("Any Error");
+
+        mockListProductService.execute.mockRejectedValue(errorMessage);
+
+        await expect(listProductController.handle(mockRequest as Request, mockResponse as Response)).rejects.toThrow(errorMessage);
+    });
 });

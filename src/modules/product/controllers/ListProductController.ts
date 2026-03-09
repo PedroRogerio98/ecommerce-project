@@ -16,6 +16,9 @@ export class ListProductController {
             throw new AppError("Nenhum produto encontrado", 404);
         }
 
-        return res.status(200).json({ products });
+        return res.status(200).json({
+            message: "Produtos listados com sucesso",
+            products
+        });
     }
 }

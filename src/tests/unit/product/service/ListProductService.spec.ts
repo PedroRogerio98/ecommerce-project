@@ -1,46 +1,44 @@
 import { ListProductService } from "../../../../modules/product/services/ListProductService";
+import { IProductRepository } from "../../../../modules/product/repositories/IProductRepository";
 import { AppError } from "../../../../shared/errors/ApiError";
 
 describe("ListProductService", () => {
+    let listProductService: ListProductService;
+    let mockProductRepository: jest.Mocked<IProductRepository>;
 
-    it("should return a list of products", async () => {
+    beforeEach(() => {
+        mockProductRepository = {
+            create: jest.fn(),
+            findByCode: jest.fn(),
+            deleteByCode: jest.fn(),
+            list: jest.fn(),
+            update: jest.fn(),
+        } as unknown as jest.Mocked<IProductRepository>;
 
-        const mockRepository = {
-            list: jest.fn().mockResolvedValue([
-                {
-                    id: "1",
-                    nome: "Produto Teste",
-                    preco: 100
-                },
-                {
-                    id: "2",
-                    nome: "Produto Teste 2",
-                    preco: 200
-                }
-            ])
-        };
-
-        const service = new ListProductService(mockRepository as any);
-
-        const products = await service.execute();
-
-        expect(mockRepository.list).toHaveBeenCalled();
-
-        expect(products).toHaveLength(2);
-
+        listProductService = new ListProductService(mockProductRepository);
     });
 
-    it("should throw AppError if there is no products found", async () => {
+    it("should be able to list all products", async () => {
+        const mockedProducts = [
+            { id: "1", sku: "SKU1", nome: "Prod 1", preco: 10, quantidade: 5 },
+            { id: "2", sku: "SKU2", nome: "Prod 2", preco: 20, quantidade: 10 }
+        ];
 
-        const mockRepository = {
-            list: jest.fn().mockResolvedValue([])
-        };
+        mockProductRepository.list.mockResolvedValue(mockedProducts);
 
-        const service = new ListProductService(mockRepository as any);
+        const result = await listProductService.execute();
 
-        await expect(service.execute()).rejects.toBeInstanceOf(AppError);
-        await expect(service.execute()).rejects.toMatchObject({ statusCode: 404 });
-
+        expect(result).toEqual(mockedProducts);
+        expect(mockProductRepository.list).toHaveBeenCalledTimes(1);
     });
 
+    it("should throw a AppError if no product is found", async () => {
+        mockProductRepository.list.mockResolvedValue([]);
+
+        await expect(listProductService.execute()).rejects.toBeInstanceOf(AppError);
+        await expect(listProductService.execute()).rejects.toMatchObject({
+            message: "Nenhum produto encontrado",
+            statusCode: 404
+        });
+    });
 });

@@ -1,70 +1,59 @@
 import { FindProductByCodeService } from "../../../../modules/product/services/FindProductByCodeService";
+import { IProductRepository } from "../../../../modules/product/repositories/IProductRepository";
+import { FindProductByCodeDTO } from "../../../../modules/product/dto/FindProductByCodeDTO";
 import { AppError } from "../../../../shared/errors/ApiError";
 
 describe("FindProductByCodeService", () => {
+    let findProductByCodeService: FindProductByCodeService;
+    let mockProductRepository: jest.Mocked<IProductRepository>;
 
-    it("should find a product by code successfully", async () => {
+    beforeEach(() => {
+        mockProductRepository = {
+            create: jest.fn(),
+            findByCode: jest.fn(),
+            deleteByCode: jest.fn(),
+            list: jest.fn(),
+            update: jest.fn(),
+        } as unknown as jest.Mocked<IProductRepository>;
 
-        const mockRepository = {
-            findByCode: jest.fn().mockResolvedValue({
-                id: "1",
-                sku: "123456",
-                nome: "Mouse Gamer",
-                descricao: "Mouse Gamer",
-                preco: 200,
-                quantidade: 10
-            })
-        };
+        findProductByCodeService = new FindProductByCodeService(mockProductRepository);
+    });
 
-        const service = new FindProductByCodeService(mockRepository as any);
+    it("should be able to find a product by code (sku)", async () => {
+        const productData: FindProductByCodeDTO = { sku: "SKU123" };
+        const mockedProduct = { id: "1", sku: "SKU123", nome: "Product", preco: 10, quantidade: 5 };
 
-        const product = await service.execute({
-            sku: "123456",
+        mockProductRepository.findByCode.mockResolvedValue(mockedProduct);
+
+        const result = await findProductByCodeService.execute(productData);
+
+        expect(result).toEqual(mockedProduct);
+        expect(mockProductRepository.findByCode).toHaveBeenCalledWith(productData);
+    });
+
+    it("should throw an AppError if product is not found", async () => {
+        const productData: FindProductByCodeDTO = { sku: "SKU123" };
+
+        mockProductRepository.findByCode.mockResolvedValue(null);
+
+        await expect(findProductByCodeService.execute(productData)).rejects.toBeInstanceOf(AppError);
+        await expect(findProductByCodeService.execute(productData)).rejects.toMatchObject({
+            message: "Produto não encontrado",
+            statusCode: 404
         });
-
-        expect(mockRepository.findByCode).toHaveBeenCalled();
-
-        expect(product).toHaveProperty("id");
-
     });
 
-    it("should throw AppError.notFound if it doesn't exist", async () => {
+    it("should throw an AppError if sku is not provided", async () => {
+        const productData = {} as FindProductByCodeDTO;
 
-        const mockRepository = {
-            findByCode: jest.fn().mockResolvedValue(null)
-        };
-
-        const service = new FindProductByCodeService(mockRepository as any);
-
-        await expect(service.execute({
-            sku: "123456",
-        })).rejects.toBeInstanceOf(AppError);
-        await expect(service.execute({
-            sku: "123456",
-        })).rejects.toMatchObject({ statusCode: 404 });
-
+        await expect(findProductByCodeService.execute(productData)).rejects.toBeInstanceOf(AppError);
+        expect(mockProductRepository.findByCode).not.toHaveBeenCalled();
     });
 
-    it("should throw error if code is invalid", async () => {
+    it("should throw an AppError if sku length is less than 3", async () => {
+        const productData: FindProductByCodeDTO = { sku: "AB" };
 
-        const mockRepository = {
-            findByCode: jest.fn().mockResolvedValue({
-                sku: "123456",
-                nome: "Mouse Gamer",
-                descricao: "Mouse Gamer",
-                preco: 200,
-                quantidade: 10
-            })
-        };
-
-        const service = new FindProductByCodeService(mockRepository as any);
-
-        await expect(
-            service.execute({
-                sku: "",
-            } as any)
-        ).rejects.toThrow();
-
+        await expect(findProductByCodeService.execute(productData)).rejects.toBeInstanceOf(AppError);
+        expect(mockProductRepository.findByCode).not.toHaveBeenCalled();
     });
-
 });

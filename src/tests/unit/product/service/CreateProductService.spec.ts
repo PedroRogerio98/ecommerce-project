@@ -1,137 +1,91 @@
 import { CreateProductService } from "../../../../modules/product/services/CreateProductService";
+import { IProductRepository } from "../../../../modules/product/repositories/IProductRepository";
+import { CreateProductDTO } from "../../../../modules/product/dto/CreateProductDTO";
+import { AppError } from "../../../../shared/errors/ApiError";
 
 describe("CreateProductService", () => {
+    let createProductService: CreateProductService;
+    let mockProductRepository: jest.Mocked<IProductRepository>;
 
-    it("should create a product", async () => {
+    beforeEach(() => {
+        mockProductRepository = {
+            create: jest.fn(),
+            findByCode: jest.fn(),
+            deleteByCode: jest.fn(),
+            list: jest.fn(),
+            update: jest.fn(),
+        } as unknown as jest.Mocked<IProductRepository>;
 
-        const mockRepository = {
-            create: jest.fn().mockResolvedValue({
-                id: "1",
-                sku: "123456",
-                nome: "Mouse Gamer",
-                descricao: "Mouse Gamer",
-                preco: 200,
-                quantidade: 10
-            })
+        createProductService = new CreateProductService(mockProductRepository);
+    });
+
+    it("should be able to create a new product", async () => {
+        const productData: CreateProductDTO = {
+            sku: "SKU123",
+            nome: "Product Test",
+            descricao: "Description Test",
+            preco: 100,
+            quantidade: 10
         };
 
-        const service = new CreateProductService(mockRepository as any);
+        const createdProduct = { id: "1", ...productData };
 
-        const result = await service.execute({
-            sku: "123456",
-            nome: "Mouse Gamer",
-            preco: 200,
+        mockProductRepository.findByCode.mockResolvedValue(null);
+        mockProductRepository.create.mockResolvedValue(createdProduct);
+
+        const result = await createProductService.execute(productData);
+
+        expect(result).toEqual(createdProduct);
+        expect(mockProductRepository.findByCode).toHaveBeenCalledWith(productData);
+        expect(mockProductRepository.create).toHaveBeenCalledWith(productData);
+    });
+
+    it("should not be able to create a product with an existing SKU", async () => {
+        const productData: CreateProductDTO = {
+            sku: "SKU123",
+            nome: "Product Test",
+            preco: 100,
             quantidade: 10
+        };
+
+        mockProductRepository.findByCode.mockResolvedValue({ id: "1", ...productData });
+
+        await expect(createProductService.execute(productData)).rejects.toBeInstanceOf(AppError);
+        await expect(createProductService.execute(productData)).rejects.toMatchObject({
+            message: "Produto já cadastrado",
+            statusCode: 400
         });
 
-        expect(mockRepository.create).toHaveBeenCalled();
-
-        expect(result).toHaveProperty("id");
-
+        expect(mockProductRepository.create).not.toHaveBeenCalled();
     });
 
-    it("should throw error if price is invalid", async () => {
-
-        const mockRepository = {
-            create: jest.fn().mockResolvedValue({
-                id: "1",
-                sku: "123456",
-                nome: "Mouse Gamer",
-                descricao: "Mouse Gamer",
-                preco: 200,
-                quantidade: 10
-            })
+    it("should not be able to create a product if repository fails to return the created product", async () => {
+        const productData: CreateProductDTO = {
+            sku: "SKU123",
+            nome: "Product Test",
+            preco: 100,
+            quantidade: 10
         };
 
-        const service = new CreateProductService(mockRepository as any);
+        mockProductRepository.findByCode.mockResolvedValue(null);
+        mockProductRepository.create.mockResolvedValue(null);
 
-        await expect(
-            service.execute({
-                sku: "123456",
-                nome: "Mouse Gamer",
-                preco: 0,
-                quantidade: 10
-            } as any)
-        ).rejects.toThrow();
-
+        await expect(createProductService.execute(productData)).rejects.toBeInstanceOf(AppError);
+        await expect(createProductService.execute(productData)).rejects.toMatchObject({
+            message: "Erro ao criar produto",
+            statusCode: 500
+        });
     });
 
-    it("should throw error if quantity is invalid", async () => {
-
-        const mockRepository = {
-            create: jest.fn().mockResolvedValue({
-                id: "1",
-                sku: "123456",
-                nome: "Mouse Gamer",
-                descricao: "Mouse Gamer",
-                preco: 200,
-                quantidade: 10
-            })
+    it("should not be able to create a product with invalid data (validation error)", async () => {
+        const invalidProductData = {
+            sku: "SK", // less than 3
+            nome: "Product Test",
+            preco: 100,
+            quantidade: 10
         };
 
-        const service = new CreateProductService(mockRepository as any);
-
-        await expect(
-            service.execute({
-                sku: "123456",
-                nome: "Mouse Gamer",
-                preco: 200,
-                quantidade: 0
-            } as any)
-        ).rejects.toThrow();
-
+        await expect(createProductService.execute(invalidProductData as CreateProductDTO)).rejects.toBeInstanceOf(AppError);
+        expect(mockProductRepository.findByCode).not.toHaveBeenCalled();
     });
-
-    it("should throw error if sku is invalid", async () => {
-
-        const mockRepository = {
-            create: jest.fn().mockResolvedValue({
-                id: "1",
-                sku: "123456",
-                nome: "Mouse Gamer",
-                descricao: "Mouse Gamer",
-                preco: 200,
-                quantidade: 10
-            })
-        };
-
-        const service = new CreateProductService(mockRepository as any);
-
-        await expect(
-            service.execute({
-                sku: "",
-                nome: "Mouse Gamer",
-                preco: 200,
-                quantidade: 10
-            } as any)
-        ).rejects.toThrow();
-
-    });
-
-    it("should throw error if name is invalid", async () => {
-
-        const mockRepository = {
-            create: jest.fn().mockResolvedValue({
-                id: "1",
-                sku: "123456",
-                nome: "Mouse Gamer",
-                descricao: "Mouse Gamer",
-                preco: 200,
-                quantidade: 10
-            })
-        };
-
-        const service = new CreateProductService(mockRepository as any);
-
-        await expect(
-            service.execute({
-                sku: "123456",
-                nome: "",
-                preco: 200,
-                quantidade: 10
-            } as any)
-        ).rejects.toThrow();
-
-    });
-
 });

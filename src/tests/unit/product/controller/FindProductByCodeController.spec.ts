@@ -1,69 +1,61 @@
+import { Request, Response } from "express";
 import { FindProductByCodeController } from "../../../../modules/product/controllers/FindProductByCodeController";
-import { AppError } from "../../../../shared/errors/ApiError";
+import { FindProductByCodeService } from "../../../../modules/product/services/FindProductByCodeService";
 
 describe("FindProductByCodeController", () => {
+    let findProductByCodeController: FindProductByCodeController;
+    let mockFindProductByCodeService: jest.Mocked<FindProductByCodeService>;
+    let mockRequest: Partial<Request>;
+    let mockResponse: Partial<Response>;
 
-    it("should return 200 when product is found", async () => {
+    beforeEach(() => {
+        mockFindProductByCodeService = {
+            execute: jest.fn()
+        } as unknown as jest.Mocked<FindProductByCodeService>;
 
-        const mockService = {
-            execute: jest.fn().mockResolvedValue({
-                id: "1",
-                nome: "Produto Teste",
-                preco: 100
-            })
+        findProductByCodeController = new FindProductByCodeController(mockFindProductByCodeService);
+
+        mockRequest = {
+            params: {}
         };
 
-        const req: any = {
-            params: {
-                sku: "123456"
-            },
-            body: {
-                nome: "Produto Teste",
-                preco: 100
-            }
-        };
-
-        const res: any = {
+        mockResponse = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
         };
-
-        const controller = new FindProductByCodeController(mockService as any);
-
-        await controller.handle(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(200);
-
-        expect(res.json).toHaveBeenCalled();
-
     });
 
-    it("should reject with 404 AppError when product is not found", async () => {
+    it("should be able to handle find product by code successfully", async () => {
+        const productData = { id: "1", sku: "SKU123", nome: "Product 1", preco: 10, quantidade: 5 };
 
-        const mockService = {
-            execute: jest.fn().mockResolvedValue(null)
-        };
+        mockRequest.params = { sku: "SKU123" };
+        mockFindProductByCodeService.execute.mockResolvedValue(productData as any);
 
-        const req: any = {
-            params: {
-                sku: "123456"
-            },
-            body: {
-                nome: "Produto Teste",
-                preco: 100
-            }
-        };
+        await findProductByCodeController.handle(mockRequest as Request, mockResponse as Response);
 
-        const res: any = {
-            status: jest.fn().mockReturnThis(),
-            json: jest.fn()
-        };
-
-        const controller = new FindProductByCodeController(mockService as any);
-
-        await expect(controller.handle(req, res)).rejects.toBeInstanceOf(AppError);
-        await expect(controller.handle(req, res)).rejects.toMatchObject({ statusCode: 404 });
-
+        expect(mockFindProductByCodeService.execute).toHaveBeenCalledWith({ sku: "SKU123" });
+        expect(mockResponse.status).toHaveBeenCalledWith(200);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            message: "Produto encontrado com sucesso",
+            product: productData
+        });
     });
 
+    it("should throw AppError if service returns null or undefined", async () => {
+        mockRequest.params = { sku: "SKU123" };
+        mockFindProductByCodeService.execute.mockResolvedValue(null as any);
+
+        await expect(findProductByCodeController.handle(mockRequest as Request, mockResponse as Response)).rejects.toMatchObject({
+            message: "Produto não encontrado",
+            statusCode: 404
+        });
+    });
+
+    it("should bubble up error from service if it throws", async () => {
+        mockRequest.params = { sku: "SKU123" };
+        const errorMessage = new Error("Service Error");
+        mockFindProductByCodeService.execute.mockRejectedValue(errorMessage);
+
+        await expect(findProductByCodeController.handle(mockRequest as Request, mockResponse as Response)).rejects.toThrow(errorMessage);
+    });
 });

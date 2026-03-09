@@ -1,63 +1,60 @@
+import { Request, Response } from "express";
 import { CreateProductController } from "../../../../modules/product/controllers/CreateProductController";
-import { AppError } from "../../../../shared/errors/ApiError";
+import { CreateProductService } from "../../../../modules/product/services/CreateProductService";
 
 describe("CreateProductController", () => {
+    let createProductController: CreateProductController;
+    let mockCreateProductService: jest.Mocked<CreateProductService>;
+    let mockRequest: Partial<Request>;
+    let mockResponse: Partial<Response>;
 
-    it("should return 201 when product is created", async () => {
+    beforeEach(() => {
+        mockCreateProductService = {
+            execute: jest.fn()
+        } as unknown as jest.Mocked<CreateProductService>;
 
-        const mockService = {
-            execute: jest.fn().mockResolvedValue({
-                id: "1",
-                nome: "Produto Teste",
-                preco: 100
-            })
+        createProductController = new CreateProductController(mockCreateProductService);
+
+        mockRequest = {
+            body: {}
         };
 
-        const req: any = {
-            body: {
-                nome: "Produto Teste",
-                preco: 100
-            }
-        };
-
-        const res: any = {
+        mockResponse = {
             status: jest.fn().mockReturnThis(),
             json: jest.fn()
         };
-
-        const controller = new CreateProductController(mockService as any);
-
-        await controller.handle(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(201);
-
-        expect(res.json).toHaveBeenCalled();
-
     });
 
-    it("should reject with AppError when product is not created", async () => {
-
-        const mockService = {
-            execute: jest.fn().mockRejectedValue(AppError.badRequest("Invalid properties"))
+    it("should be able to handle product creation successfully", async () => {
+        const productData = {
+            sku: "SKU123",
+            nome: "Test Product",
+            descricao: "Test Description",
+            preco: 100,
+            quantidade: 10
         };
 
-        const req: any = {
-            body: {
-                nome: "Produto Teste",
-                preco: 100
-            }
-        };
+        mockRequest.body = productData;
 
-        const res: any = {
-            status: jest.fn().mockReturnThis(),
-            json: jest.fn()
-        };
+        const createdProduct = { id: "1", ...productData };
+        mockCreateProductService.execute.mockResolvedValue(createdProduct as any);
 
-        const controller = new CreateProductController(mockService as any);
+        await createProductController.handle(mockRequest as Request, mockResponse as Response);
 
-        await expect(controller.handle(req, res)).rejects.toBeInstanceOf(AppError);
-        await expect(controller.handle(req, res)).rejects.toMatchObject({ statusCode: 400 });
-
+        expect(mockCreateProductService.execute).toHaveBeenCalledWith(productData);
+        expect(mockResponse.status).toHaveBeenCalledWith(201);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            message: "Produto criado com sucesso",
+            product: createdProduct
+        });
     });
 
+    it("should bubble up errors from the service", async () => {
+        mockRequest.body = { sku: "SKU123" };
+        const errorMessage = new Error("Any Error");
+
+        mockCreateProductService.execute.mockRejectedValue(errorMessage);
+
+        await expect(createProductController.handle(mockRequest as Request, mockResponse as Response)).rejects.toThrow(errorMessage);
+    });
 });

@@ -17,10 +17,13 @@ export class FindProductByCodeController {
         });
 
         if (!product) {
-            throw new AppError("Product not found", 404);
+            throw new AppError("Produto não encontrado", 404);
         }
 
-        return res.status(200).json({ product });
+        return res.status(200).json({
+            message: "Produto encontrado com sucesso",
+            product
+        });
     }
 
 }
