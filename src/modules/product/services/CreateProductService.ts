@@ -11,18 +11,21 @@ export class CreateProductService {
 
     async execute(data: CreateProductDTO) {
 
-        validateCreateProduct(data);
+        const validationResult = validateCreateProduct(data);
+        if (validationResult.error) {
+            throw new AppError(validationResult.error.message, 400, validationResult.error);
+        }
 
         const productExists = await this.repository.findByCode(data);
 
         if (productExists) {
-            throw AppError.badRequest("Produto já cadastrado");
+            throw new AppError("Produto já cadastrado", 400, { field: "code" });
         }
 
         const product = await this.repository.create(data);
 
         if (!product) {
-            throw AppError.internalError("Erro ao criar produto");
+            throw new AppError("Erro ao criar produto", 500, { error: "Erro ao criar produto" });
         }
 
         return product;

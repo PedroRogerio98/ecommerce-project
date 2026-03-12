@@ -10,6 +10,8 @@ import { ListProductService } from "../services/ListProductService";
 import { DeleteProductByCodeService } from "../services/DeleteProductByCodeService";
 import { UpdateProductService } from "../services/UpdateProduct";
 import { UpdateProductController } from "../controllers/UpdateProductController";
+import { BatchCreateProductController } from "../controllers/BatchCreateProductController";
+import { BatchCreateProductService } from "../services/BatchCreateProductService";
 
 
 const productRoutes = Router();
@@ -20,17 +22,20 @@ const listProductService = new ListProductService(productRepository);
 const findProductByCodeService = new FindProductByCodeService(productRepository);
 const deleteProductByCodeService = new DeleteProductByCodeService(productRepository);
 const updateProductService = new UpdateProductService(productRepository);
+const batchCreateProductService = new BatchCreateProductService(productRepository);
 
 const createProductController = new CreateProductController(createProductService);
 const listProductController = new ListProductController(listProductService);
 const findProductByCodeController = new FindProductByCodeController(findProductByCodeService);
 const deleteProductByCodeController = new DeleteProductByCodeController(deleteProductByCodeService);
 const updateProductController = new UpdateProductController(updateProductService);
+const batchCreateProductController = new BatchCreateProductController(batchCreateProductService);
 
 productRoutes.post("/", (req, res) => createProductController.handle(req, res));
 productRoutes.get("/", (req, res) => listProductController.handle(req, res));
 productRoutes.get("/:sku", (req, res) => findProductByCodeController.handle(req, res));
 productRoutes.delete("/:sku", (req, res) => deleteProductByCodeController.handle(req, res));
 productRoutes.put("/:sku", (req, res) => updateProductController.handle(req, res));
+productRoutes.post("/batch", (req, res) => batchCreateProductController.handle(req, res));
 
 export default productRoutes;

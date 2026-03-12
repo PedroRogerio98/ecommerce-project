@@ -9,4 +9,5 @@ export interface IProductRepository {
     deleteByCode(data: DeleteProductByCodeDTO): Promise<void>;
     list(): Promise<any[]>;
     update(data: UpdateProductDTO): Promise<any>;
+    batchCreate(data: CreateProductDTO[]): Promise<any>;
 }
