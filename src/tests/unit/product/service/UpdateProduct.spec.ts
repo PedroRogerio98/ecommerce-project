@@ -55,7 +55,7 @@ describe("UpdateProductService", () => {
         await expect(updateProductService.execute(productData)).rejects.toBeInstanceOf(AppError);
         await expect(updateProductService.execute(productData)).rejects.toMatchObject({
             message: "Produto não encontrado",
-            statusCode: 400
+            statusCode: 404
         });
 
         expect(mockProductRepository.update).not.toHaveBeenCalled();
@@ -97,7 +97,7 @@ describe("UpdateProductService", () => {
         await expect(updateProductService.execute(productData)).rejects.toBeInstanceOf(AppError);
         await expect(updateProductService.execute(productData)).rejects.toMatchObject({
             message: "Erro ao atualizar produto",
-            statusCode: 400
+            statusCode: 500
         });
     });
 });

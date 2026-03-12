@@ -12,7 +12,7 @@ export class UpdateProductService {
         const productExists = await this.repository.findByCode(data);
 
         if (!productExists) {
-            throw AppError.badRequest("Produto não encontrado");
+            throw new AppError("Produto não encontrado", 404);
         }
 
         validateUpdateProduct(data);
@@ -20,7 +20,7 @@ export class UpdateProductService {
         const product = await this.repository.update(data);
 
         if (!product) {
-            throw AppError.badRequest("Erro ao atualizar produto");
+            throw new AppError("Erro ao atualizar produto", 500, { error: "Erro ao atualizar produto" });
         }
 
         return product;

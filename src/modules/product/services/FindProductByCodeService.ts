@@ -16,7 +16,7 @@ export class FindProductByCodeService {
         const product = await this.repository.findByCode(data);
 
         if (!product) {
-            throw AppError.notFound("Produto não encontrado");
+            throw new AppError("Produto não encontrado", 404);
         }
 
         return product;

@@ -16,13 +16,13 @@ export class DeleteProductByCodeService {
         const product = await this.repository.findByCode({ sku: data.sku });
 
         if (!product) {
-            throw AppError.notFound("Produto não encontrado");
+            throw new AppError("Produto não encontrado", 404);
         }
 
         try {
             await this.repository.deleteByCode({ sku: data.sku });
         } catch (error) {
-            throw AppError.internalError("Erro ao excluir produto");
+            throw new AppError("Erro ao excluir produto", 500, error);
         }
     }
 

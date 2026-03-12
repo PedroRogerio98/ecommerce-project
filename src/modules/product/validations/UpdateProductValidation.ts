@@ -3,22 +3,22 @@ import { AppError } from "../../../shared/errors/ApiError";
 
 export function validateUpdateProduct(data: UpdateProductDTO) {
     if (!data.sku) {
-        throw AppError.badRequest("SKU é obrigatório");
+        throw new AppError("SKU é obrigatório", 400, { field: "sku" });
     }
 
     if (!data.nome) {
-        throw AppError.badRequest("Nome é obrigatório");
+        throw new AppError("Nome é obrigatório", 400, { field: "nome" });
     }
 
     if (!data.descricao) {
-        throw AppError.badRequest("Descrição é obrigatória");
+        throw new AppError("Descrição é obrigatória", 400, { field: "descricao" });
     }
 
     if (!data.preco) {
-        throw AppError.badRequest("Preço é obrigatório");
+        throw new AppError("Preço é obrigatório", 400, { field: "preco" });
     }
 
     if (!data.quantidade) {
-        throw AppError.badRequest("Quantidade é obrigatória");
+        throw new AppError("Quantidade é obrigatória", 400, { field: "quantidade" });
     }
 }

@@ -83,4 +83,39 @@ export class ProductRepository implements IProductRepository {
     return result.rows[0];
   }
 
+  async batchCreate(data: CreateProductDTO[]) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const createdProducts: any[] = [];
+      for (const product of data) {
+        const query = `
+          INSERT INTO products (sku, nome, descricao, preco, quantidade)
+          VALUES ($1, $2, $3, $4, $5)
+          ON CONFLICT (sku) DO UPDATE
+          SET nome = $2, descricao = $3, preco = $4, quantidade = $5, updated_at = NOW()
+          RETURNING *
+        `;
+        const values = [
+          product.sku,
+          product.nome,
+          product.descricao,
+          product.preco,
+          product.quantidade
+        ];
+        const result = await client.query(query, values);
+        createdProducts.push(result.rows[0]);
+      }
+
+      await client.query('COMMIT');
+      return createdProducts;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
 }

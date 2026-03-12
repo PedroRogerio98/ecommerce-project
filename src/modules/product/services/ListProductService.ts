@@ -11,7 +11,7 @@ export class ListProductService {
         const products = await this.repository.list();
 
         if (products.length === 0) {
-            throw AppError.notFound("Nenhum produto encontrado");
+            throw new AppError("Nenhum produto encontrado", 404);
         }
 
         return products;

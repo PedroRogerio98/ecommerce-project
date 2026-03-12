@@ -1,38 +1,44 @@
 import { CreateProductDTO } from "../dto/CreateProductDTO";
 import { AppError } from "../../../shared/errors/ApiError";
 
-export function validateCreateProduct(data: CreateProductDTO) {
+interface ValidationResult {
+    error?: AppError;
+    value?: CreateProductDTO;
+}
+
+export function validateCreateProduct(data: CreateProductDTO): ValidationResult {
 
     if (!data.nome) {
-        throw AppError.badRequest("Nome é obrigatório");
+        return { error: new AppError("Nome é obrigatório", 400, { field: "nome" }) };
     }
 
     if (!data.preco || data.preco <= 0) {
-        throw AppError.badRequest("Preço deve ser maior que zero");
+        return { error: new AppError("Preço deve ser maior que zero", 400, { field: "preco" }) };
     }
 
     if (!data.quantidade || data.quantidade <= 0) {
-        throw AppError.badRequest("Quantidade deve ser maior que zero");
+        return { error: new AppError("Quantidade deve ser maior que zero", 400, { field: "quantidade" }) };
     }
 
     if (!data.sku) {
-        throw AppError.badRequest("SKU é obrigatório");
+        return { error: new AppError("SKU é obrigatório", 400, { field: "sku" }) };
     }
 
     if (data.sku.length > 50) {
-        throw AppError.badRequest("SKU deve ter no máximo 50 caracteres");
+        return { error: new AppError("SKU deve ter no máximo 50 caracteres", 400, { field: "sku" }) };
     }
 
     if (data.sku.length < 3) {
-        throw AppError.badRequest("SKU deve ter no mínimo 3 caracteres");
+        return { error: new AppError("SKU deve ter no mínimo 3 caracteres", 400, { field: "sku" }) };
     }
 
     if (data.nome.length > 255) {
-        throw AppError.badRequest("Nome deve ter no máximo 255 caracteres");
+        return { error: new AppError("Nome deve ter no máximo 255 caracteres", 400, { field: "nome" }) };
     }
 
     if (data.nome.length < 3) {
-        throw AppError.badRequest("Nome deve ter no mínimo 3 caracteres");
+        return { error: new AppError("Nome deve ter no mínimo 3 caracteres", 400, { field: "nome" }) };
     }
 
+    return { value: data };
 }
